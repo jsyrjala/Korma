@@ -35,7 +35,9 @@
 (defn delay-pool
   "Return a delay for creating a connection pool for the given spec."
   [spec]
-  (delay (connection-pool spec)))
+  (if (:datasource spec)
+    (delay {:datasource (:datasource spec)})
+    (delay (connection-pool spec))))
 
 (defn get-connection
   "Get a connection from the potentially delayed connection object."

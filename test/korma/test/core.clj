@@ -3,10 +3,12 @@
   (:use [korma.core]
         [korma.db]
         [korma.config])
+  (:import [com.mchange.v2.c3p0 ComboPooledDataSource])
   (:use [clojure.test]))
 
 (defdb test-db-opts (postgres {:db "korma" :user "korma" :password "kormapass" :delimiters "" :naming {:fields string/upper-case}}))
 (defdb test-db (postgres {:db "korma" :user "korma" :password "kormapass"}))
+(defdb test-db-datasource (postgres {:datasource :dummy-datasource}))
 
 (defentity delims
   (database test-db-opts))
@@ -377,3 +379,13 @@
          (select :test (where {:cool [in []]}))
          "SELECT \"test\".* FROM \"test\" WHERE (\"test\".\"cool\" IN (NULL))"
          )))
+
+(deftest datasource-configuration
+  (let [pool (:pool test-db-datasource)
+        datasource (:datasource @pool)]
+    (is (= datasource :dummy-datasource))))
+
+(deftest default-connection-pool
+  (let [pool (:pool test-db)
+        datasource (:datasource @pool)]
+    (is (= (.getClass datasource) ComboPooledDataSource))))
